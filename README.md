@@ -1,3 +1,120 @@
+2025_A
+
+namespace Common
+{
+    public class DummyGenerator : ITextSequenceSource
+    {
+        public int N {  get; set; }
+
+        public IEnumerable<string> GenerateTexts()
+        {
+            for (int i = 0; i < N; i++)
+            {
+                yield return "dummy";
+            }
+        }
+    }
+}
+
+namespace Common
+{
+    public interface ITextSequenceSource
+    {
+        IEnumerable<string> GenerateTexts();
+
+    }
+}
+
+namespace Common
+{
+    public class SquareGenerator : ITextSequenceSource
+    {
+        private int _n;
+
+        public SquareGenerator(int N)
+        {
+            _n = N;
+        }
+
+        public IEnumerable<string> GenerateTexts()
+        {
+            for(int i = 1; i <= _n; i++)
+            {
+                int squer = i * i;
+                yield return $"A(z) {squer} négyzetszám";
+            }
+        }
+    }
+}
+
+namespace ConsoleApplication
+{
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            var dummy = new DummyGenerator { N = 5 };
+            ShowText(dummy);
+
+            var generator = new SquareGenerator(10);
+            var squaretexts = generator.GenerateTexts().ToList();
+
+            int countwithsix = squaretexts.Count(text => text.Contains("6"));
+            Console.WriteLine(countwithsix);
+           
+        }
+
+        public static void ShowText(ITextSequenceSource soruce)
+        {
+            var list = new List<string>();
+
+            foreach (var text in soruce.GenerateTexts())
+            {
+                list.Add(text);
+            }
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                Console.WriteLine($"{i}. elem: {list[i]}");
+            }
+        }
+    }
+}
+
+namespace Tests
+{
+    public class DummyTests
+    {
+        [Fact]
+        public void BasicTest()
+        {
+            var dummy = new DummyGenerator { N = 10 };
+
+            Assert.Equal(10, dummy.GenerateTexts().Count());
+
+        }
+    }
+}
+
+namespace Tests
+{
+
+    public class SquareTest
+    {
+        [Fact]
+        public void FiveSquareTest()
+        {
+            var generator = new SquareGenerator(5);
+
+            var result = generator.GenerateTexts().ToList();
+
+
+            Assert.Contains(result, s => s.Contains("25"));
+        }
+    }
+}
+
+------------------------------------------------------------------------------------------------------------------
 2024 recipebook
 
 namespace Common
@@ -797,3 +914,167 @@ public class StudentTests
     }
 }
 -------------------------------------------------------------------------------------------------------------
+linq
+
+🔹 SelectMany
+Mire jó?
+Többszintű (pl. lista listában) adatszerkezetet kilapít egyetlen sorozattá.
+Mikor használjuk?
+Ha kollekciók kollekciójából szeretnénk egy sima listát
+Ha egy elemhez több eredmény tartozik
+
+Példa
+var matrix = new List<List<int>>
+{
+    new() { 1, 2 },
+    new() { 3, 4 },
+    new() { 5 }
+};
+
+var flat = matrix.SelectMany(x => x);
+// Eredmény: 1, 2, 3, 4, 5
+
+
+➡️ Select → lista listája
+➡️ SelectMany → egyetlen lista
+...............................................................
+
+🔹 TakeWhile
+
+Mire jó?
+Addig vesz elemeket a sorozat elejéről, amíg a feltétel igaz.
+Amint hamis → azonnal leáll.
+Mikor használjuk? Részleges feldolgozásra Amikor a sorrend számít
+
+Példa
+var numbers = new[] { 2, 4, 6, 7, 8, 10 };
+var result = numbers.TakeWhile(n => n % 2 == 0);
+// Eredmény: 2, 4, 6
+
+❗ Nem szűrés!
+Ha Where lenne → 2,4,6,8,10
+.............................................................
+
+Elemek csoportosítása egy kulcs alapján (mint SQL GROUP BY).
+Mikor használjuk? Statisztikák Kategorizálás Összesítés csoportonként
+
+Példa
+var people = new[]
+{
+    new { Name = "Anna", Age = 20 },
+    new { Name = "Béla", Age = 20 },
+    new { Name = "Csaba", Age = 30 }
+};
+
+var groups = people.GroupBy(p => p.Age);
+
+foreach (var g in groups)
+{
+    Console.WriteLine($"Kor: {g.Key}");
+    foreach (var p in g)
+        Console.WriteLine($"  {p.Name}");
+}
+➡️ Key → a csoport kulcsa
+➡️ g → az adott csoport elemei
+..............................................................
+
+🔹 Aggregate
+Mire jó? Egy sorozatot egyetlen értékké redukál, teljes kontrollal.
+Mikor használjuk? Egyedi összesítési logika Amikor Sum, Average, Max nem elég
+
+Példa – összegzés
+var numbers = new[] { 1, 2, 3, 4 };
+
+var sum = numbers.Aggregate((acc, x) => acc + x);
+// Eredmény: 10
+
+Példa – szöveg összefűzés
+var words = new[] { "LINQ", "nagyon", "hasznos" };
+
+var sentence = words.Aggregate((a, b) => a + " " + b);
+// "LINQ nagyon hasznos"
+..............................................................
+
+numbers.Where(n => n > 10);
+
+Csak egy adott típusú elemek
+objects.OfType<string>();
+
+Elemek átalakítása
+people.Select(p => p.Name);
+
+people.OrderBy(p => p.Age);
+
+people.OrderBy(p => p.Age)
+     .ThenBy(p => p.Name);
+
+numbers.Take(5);
+numbers.Skip(5);
+......................
+Halmazműveletek (Set operations):
+
+Duplikátumok eltávolítása
+numbers.Distinct();
+
+a.Except(b);
+...............
+Elemkeresés:
+
+people.First(p => p.Age > 18);
+
+Ellenőrzés (Quantifiers)
+Any
+people.Any(p => p.Age < 18);
+
+All
+people.All(p => p.Age >= 18);
+
+Contains
+numbers.Contains(5);
+
+🔹 Összesítés (Aggregation)
+Count
+people.Count();
+
+Sum
+numbers.Sum();
+
+Average
+numbers.Average();
+
+Min, Max
+numbers.Max();
+
+Aggregate
+
+Egyedi összesítés (korábban)
+
+🔹 Csoportosítás / lookup
+GroupBy
+people.GroupBy(p => p.Age);
+
+ToLookup
+
+Mint GroupBy, de azonnal kiértékelődik
+
+🔹 Kapcsolás (Join)
+Join
+orders.Join(customers,
+    o => o.CustomerId,
+    c => c.Id,
+    (o, c) => new { o.Id, c.Name });
+
+GroupJoin
+
+Bal oldali join (LEFT JOIN)
+
+🔹 Konvertálás
+ToList, ToArray
+people.ToList();
+
+ToDictionary
+people.ToDictionary(p => p.Id);
+
+🔹 Index alapú LINQ
+Index a lambda-ban
+numbers.Where((n, i) => i % 2 == 0);
